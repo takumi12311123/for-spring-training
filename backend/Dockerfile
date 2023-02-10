@@ -5,8 +5,6 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci
-
 RUN npm i -g @nestjs/cli
 
 RUN npm i @nestjs/swagger
