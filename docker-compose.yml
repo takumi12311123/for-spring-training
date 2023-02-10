@@ -1,1 +1,29 @@
 # docker-compose file
+version: "3"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    ports:
+      - 3002:3002
+    restart: always
+    volumes:
+      - ./src:/app/src
+
+  postgres:
+    build: ./postgres/
+    image: postgres:12-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/initdb.d:/docker-entrypoint-initdb.d
+      - ./postgres/data:/var/lib/postgres
+    environment:
+      - POSTGRES_ROOT_PASSWORD=root
+      - POSTGRES_DB=twitter
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - TZ="Asia/Tokyo"
