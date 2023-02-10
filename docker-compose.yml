@@ -13,7 +13,7 @@ services:
       - ./src:/app/src
 
   postgres:
-    build: ./postgres/
+    build: ./backend/
     image: postgres:12-alpine
     restart: always
     ports:
