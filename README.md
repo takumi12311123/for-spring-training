@@ -13,3 +13,8 @@ docker-compose up -d
 ```
 docker-compose up
 ```
+
+.env.exampleのコピー方法(frontend/backend下で)
+```
+cp .env.example .env
+```
