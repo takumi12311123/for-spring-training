@@ -1,73 +1,165 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# バックエンド手順書
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+1.  TablePlus(データベース管理ソフトウェア)のインストール<br/>
+    https://tableplus.com/
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+2.  VSCode で for-spring-training を開く
 
-## Description
+3.  ターミナルを開いて、for-spring-training 上でコンテナ起動
+    ```
+    docker-compose up
+    ```
+4.  起動を待つ(ターミナルに「Nest application successfully started 」と表示が出れば ok、結構時間がかかります)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+5.  twitter_api コンテナ内で、以下のコマンドを叩く
 
-## Installation
+    ```
+    npm i -g @nestjs/cli ts-node
+    ```
 
-```bash
-$ npm install
-```
+6.  今回作るアプリの仕様
+    <p>作るもの：簡易版 Twitter</p>
+    機能一覧</br>
+    1. ユーザー登録機能</br>
+    2. ログイン機能</br>
+    3. ツイート投稿機能</br>
+    4. ツイート表示機能</br>
+    5. ツイート検索機能</br>
 
-## Running the app
+    <p>テーブル定義</p>
 
-```bash
-# development
-$ npm run start
+    <p>
 
-# watch mode
-$ npm run start:dev
+    | users       |
+    | ----------- |
+    | id          |
+    | name        |
+    | password    |
+    | email       |
+    | accessed_at |
 
-# production mode
-$ npm run start:prod
-```
+    | tweets     |
+    | ---------- |
+    | id         |
+    | content    |
+    | created_at |
+    | user_id    |
 
-## Test
+    </p>
 
-```bash
-# unit tests
-$ npm run test
+7.  entity の作成<br/>
 
-# e2e tests
-$ npm run test:e2e
+    1.  entity って？<br/>
+        データベースにおけるテーブルの役割。今回は TypeScript のクラス + TypeORM(後述)の書き方で書きます
+    2.  ファイルの作成<br/>
+        backend/src/entity 内に「user.entity.ts」「tweet.entity.ts」の二つを作成
+    3.  backend/src/entity/user.entity.ts に下のコードをコピー(エラーが出ても気にしないでください)
 
-# test coverage
-$ npm run test:cov
-```
+        ```typescript
+        import {
+          Entity,
+          PrimaryGeneratedColumn,
+          Column,
+          OneToMany,
+        } from 'typeorm';
+        import { Tweet } from './tweet.entity';
 
-## Support
+        @Entity('users')
+        export class User {
+          @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
+          id!: number;
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+          @Column('character varying', { name: 'name' })
+          name: string;
 
-## Stay in touch
+          @Column('character varying', { name: 'password' })
+          password: string;
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+          @Column('character varying', { name: 'email', unique: true })
+          email: string;
 
-## License
+          @Column({
+            name: 'accesses_at',
+            type: 'timestamp without time zone',
+            default: null,
+          })
+          accessedAt: Date | null;
 
-Nest is [MIT licensed](LICENSE).
+          @OneToMany(() => Tweet, (tweet) => tweet.user, {
+            cascade: ['insert', 'update', 'remove'],
+          })
+          userTweetList: Tweet[];
+
+          constructor(
+            name: string,
+            password: string,
+            email: string,
+            accessedAt: Date | null,
+          ) {
+            this.name = name;
+            this.password = password;
+            this.email = email;
+            this.accessedAt = accessedAt;
+          }
+        }
+        ```
+
+    4.  backend/src/entity/tweet.entity.ts に下のコードをコピー(エラーが消えるはずです)
+
+        ```typescript
+        import {
+          Entity,
+          PrimaryGeneratedColumn,
+          Column,
+          CreateDateColumn,
+          JoinColumn,
+          ManyToOne,
+        } from 'typeorm';
+        import { User } from './user.entity';
+
+        @Entity('tweets')
+        export class Tweet {
+          @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
+          id!: number;
+
+          @Column('character varying', { name: 'name' })
+          content: string;
+
+          @CreateDateColumn({
+            name: 'created_at',
+            type: 'timestamp without time zone',
+          })
+          createdAt!: Date;
+
+          @ManyToOne(() => User, (user) => user.userTweetList, {
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+            nullable: false,
+          })
+          @JoinColumn([{ name: 'user_id', referencedColumnName: 'id' }])
+          readonly user: User;
+
+          constructor(content: string, user: User) {
+            this.content = content;
+            this.user = user;
+          }
+        }
+        ```
+
+    5.  解説 <br/>
+        <p>今回は TypeORM という ORM を用いてバックエンドを書いていきます。詳しくは説明しませんが、データベースとのやりとりをいい感じにやってくれるものという認識で大丈夫です。具体的に言うと、SQLを書かなくてもデータベースにアクセスできたりします。(裏ではSQLが走ってます)上のコードでは TypeORM の書き方でデータベースのテーブルを定義しています。@~~Columnで定義されたものがテーブルのカラムになっているので、上のテーブル定義と見比べてみてください。リレーションの指定も出来て、ここでは@OneToMany, @ManyToOneを用いた一対多の関係を記述しています。</p>
+
+    6.  TablePlus の接続</br>
+        <p>TablePlusを開いて、create a new connection... → PostgreSQL → create の順に押して、下記の接続情報を入力してください(他はいじらないでください)</p>
+        <p>
+        Name: twitter</br>
+        Port: 5432</br>
+        User: postgres</br>
+        Password: postgres</br>
+        Database: twitter</br>
+        </p>
+        <p>上を入力後、Connectを押してください。画面が切り替わり、左側に先ほど作ったentity通りのテーブルが作成されているはずです。実際に、TypeORMのmigrationという機能で、entityを元にテーブルを自動生成しています。(SQLを書かなくてもテーブルを作成できた！)今回はentityに記載されたコードを元に自動でテーブルが生成・更新される設定にしています。TablePlusからデータの追加や更新もできますが、今回は使わずに確認用にしてください。</p>
+
+8.  repository の作成
+    1. repository って？
+    <p>データベースとの接続情報を記述しています。テーブルごとに作成することになります。SQLを使う場合は、ここに記述します。</p>
