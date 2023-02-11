@@ -1,0 +1,18 @@
+
+FROM node
+
+COPY backend /app
+
+WORKDIR /app/backend
+
+# COPY backend/package*.json /app/
+
+RUN npm ci
+
+RUN npm i @nestjs/cli@7.6.0 -g
+
+COPY . .
+
+EXPOSE 3001
+
+# CMD ["npm", "run", "start:dev"]
