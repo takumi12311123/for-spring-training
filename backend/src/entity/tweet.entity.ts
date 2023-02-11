@@ -16,9 +16,11 @@ export class Tweet {
   @Column('character varying', { name: 'name' })
   content: string;
 
+  //レコードを挿入したときに、勝手にその時の時間を入れてくれる
   @CreateDateColumn({ name: 'created_at', type: 'timestamp without time zone' })
   createdAt!: Date;
 
+  //多対1の関係、カスケードの記述
   @ManyToOne(() => User, (user) => user.userTweetList, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

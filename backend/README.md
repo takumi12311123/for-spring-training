@@ -66,6 +66,7 @@
 
         @Entity('users')
         export class User {
+          //データベースでいうautoincrement
           @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
           id!: number;
 
@@ -75,9 +76,11 @@
           @Column('character varying', { name: 'password' })
           password: string;
 
+          //unique設定をしている
           @Column('character varying', { name: 'email', unique: true })
           email: string;
 
+          //デフォルト値をnullに
           @Column({
             name: 'accesses_at',
             type: 'timestamp without time zone',
@@ -85,6 +88,7 @@
           })
           accessedAt: Date | null;
 
+          //1対多の関係の記述、カスケードの記述(多対1の関係では記述方法が異なるので注意)
           @OneToMany(() => Tweet, (tweet) => tweet.user, {
             cascade: ['insert', 'update', 'remove'],
           })
@@ -125,12 +129,14 @@
           @Column('character varying', { name: 'name' })
           content: string;
 
+          //レコードを挿入したときに、勝手にその時の時間を入れてくれる
           @CreateDateColumn({
             name: 'created_at',
             type: 'timestamp without time zone',
           })
           createdAt!: Date;
 
+          //多対1の関係、カスケードの記述
           @ManyToOne(() => User, (user) => user.userTweetList, {
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
@@ -161,5 +167,80 @@
         <p>上を入力後、Connectを押してください。画面が切り替わり、左側に先ほど作ったentity通りのテーブルが作成されているはずです。実際に、TypeORMのmigrationという機能で、entityを元にテーブルを自動生成しています。(SQLを書かなくてもテーブルを作成できた！)今回はentityに記載されたコードを元に自動でテーブルが生成・更新される設定にしています。TablePlusからデータの追加や更新もできますが、今回は使わずに確認用にしてください。</p>
 
 8.  repository の作成
-    1. repository って？
-    <p>データベースとの接続情報を記述しています。テーブルごとに作成することになります。SQLを使う場合は、ここに記述します。</p>
+
+    1. repository って？</br>
+       データベースとの接続情報を記述しています。テーブルごとに作成することになります。SQL を使う場合は、ここに記述します。
+
+    2. ディレクトリの作成</br>
+       backend/src/ に「repository」という名前でディレクトリを作成してください。
+
+    3. ファイルの作成</br>
+       backend/src/repository/ に「user.repository.ts」「tweet.repository.ts」の両方を作成してください。
+
+    4. backend/src/repository/user.repository.ts に下記のコードをコピー
+
+       ```typescript
+       import { Injectable } from '@nestjs/common';
+       import { DataSource, Repository } from 'typeorm';
+       import { User } from '../entity/user.entity';
+
+       @Injectable()
+       export class UserRepository extends Repository<User> {
+         constructor(public dataSource: DataSource) {
+           super(User, dataSource.createEntityManager());
+         }
+       }
+       ```
+
+    5. backend/src/repository/tweet.repository.ts に下記のコードをコピー
+
+       ```typescript
+       import { Injectable } from '@nestjs/common';
+       import { DataSource, Repository } from 'typeorm';
+       import { Tweet } from '../entity/tweet.entity';
+
+       @Injectable()
+       export class TweetRepository extends Repository<Tweet> {
+         constructor(public dataSource: DataSource) {
+           super(Tweet, dataSource.createEntityManager());
+         }
+       }
+       ```
+
+    6. 解説</br>
+       <p>そんなにrepositoryをいじることはないです。難しそうな書き方をしてますが、普通に使う分には理解する必要はないので大丈夫です。ただ、ここに必要であればSQLを記述するということを知っておいてください</p>
+
+9.  NestJS の下準備
+    <p>今まではTypeORMに関する記述を行ってきました。ここから先はNestJSに関する記述を行っていきます。事前学習で学んでもらった通り、NestJSには「Service」「Controller」「Module」の3つの重要な要素があります。このパートではこの3つのベースとなるファイルをnest/cliを使って作成していきます。</p>
+
+    1. twitter_api コンテナの中に入ってください(浦くんへ：docker desktop から入る方法の記述をお願いします)
+
+    2. Module の作成
+       <p>コンテナ内で下記のコマンドを実施する(nest: not foundとエラーが出るときは、手順5をもう一回やってみてください)(少し時間がかかります)</p>
+
+       ```
+       nest g mo user --no-spec
+       nest g mo tweet --no-spec
+       ```
+
+    3. Controller の作成
+       <p>コンテナ内で下記のコマンドを実施する(少し時間がかかります)</p>
+
+       ```
+       nest g co user --no-spec
+       nest g co tweet --no-spec
+       ```
+
+    4. Service の作成
+       <p>コンテナ内で下記のコマンドを実施する(少し時間がかかります)</p>
+
+       ```
+       nest g s user --no-spec
+       nest g s tweet --no-spec
+       ```
+
+    5. 確認
+       <p>backend/srcディレクトリ内にuserディレクトリとtweetディレクトリが自動作成されていることを確認してください。それぞれのディレクトリにcontroller, module, serviceの3つのファイルが生成されていたら成功です。もしもうまくいっていなければ、自動作成されたディレクトリを削除して、やり直してください。</p>
+
+    6. 解説
+       <p>nest/cliのコマンドを用いてディレクトリとファイルを作成しました。もちろん手動でやってもいいのですが、コマンドを使うことでファイル同士の依存関係も自動で記述してくれます。例えば、userディレクトリ内のuser.module.tsを見てみると、UserServiceとUserControllerを勝手にインポートしてくれています。また、各Moduleをルートモジュール(app.module.ts)に自動登録してくれています</p>

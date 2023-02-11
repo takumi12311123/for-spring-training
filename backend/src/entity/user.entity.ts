@@ -3,6 +3,7 @@ import { Tweet } from './tweet.entity';
 
 @Entity('users')
 export class User {
+  //データベースでいうautoincrement
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id!: number;
 
@@ -12,9 +13,11 @@ export class User {
   @Column('character varying', { name: 'password' })
   password: string;
 
+  //unique設定をしている
   @Column('character varying', { name: 'email', unique: true })
   email: string;
 
+  //デフォルト値をnullに
   @Column({
     name: 'accesses_at',
     type: 'timestamp without time zone',
@@ -22,6 +25,7 @@ export class User {
   })
   accessedAt: Date | null;
 
+  //1対多の関係の記述、カスケードの記述(多対1の関係では記述方法が異なるので注意)
   @OneToMany(() => Tweet, (tweet) => tweet.user, {
     cascade: ['insert', 'update', 'remove'],
   })
