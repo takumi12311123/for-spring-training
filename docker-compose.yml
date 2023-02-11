@@ -1,6 +1,14 @@
 # docker-compose file
 version: "3"
 
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.23.0.0/24
+
 services:
   api:
     image: node:16.19.0
@@ -14,6 +22,9 @@ services:
     command: >
       bash -c "npm ci &&
       npm run start:dev"
+    networks:
+      app_net:
+        ipv4_address: 172.23.0.4
 
   postgres:
     image: postgres:12-alpine
@@ -29,3 +40,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - TZ="Asia/Tokyo"
+    networks:
+      app_net:
+        ipv4_address: 172.23.0.3
