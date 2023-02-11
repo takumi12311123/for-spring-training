@@ -43,3 +43,18 @@ services:
     networks:
       app_net:
         ipv4_address: 172.23.0.3
+
+  front:
+    image: node:16.19.0
+    container_name: react_front
+    ports:
+      - 3333:3333
+    command: >
+      sh -c "npm install &&
+      npm start"
+    volumes:
+      - ./frontend:/src
+    working_dir: /src
+    networks:
+      app_net:
+        ipv4_address: 172.23.0.5
