@@ -1,33 +1,37 @@
 # for-spring-training
 
-### pushのルール
+
+### push のルール
 
 #### frontend
 
-dev-frontendにpushをする
+dev-frontend に push をする
 
 #### backend
 
-dev-backendにpushをする
+dev-backend に push をする
 
-2年生に渡すのが`main`になるように
+2 年生に渡すのが`main`になるように
 
-### 2年生春休み課題
+### 2 年生春休み課題
+
 
 環境構築方法
 
 初回の環境構築
+
 ```
 docker-compose up -d
 ```
 
-2回目からの環境構築
+2 回目からの環境構築
+
 ```
 docker-compose up
 ```
 
-.env.exampleのコピー方法(frontend/backend下で)
+.env.example のコピー方法(frontend/backend 下で)
+
 ```
 cp .env.example .env
 ```
-
