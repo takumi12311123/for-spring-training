@@ -20,7 +20,8 @@ export class TweetController {
   @HttpCode(200)
   @Get()
   async getTweet(): Promise<GetTweetResponse> {
-    return;
+    const res = await this.tweetService.getTweet();
+    return res;
   }
 
   @ApiOperation({ summary: 'ツイート投稿' })
@@ -30,7 +31,8 @@ export class TweetController {
   async postTweet(
     @Body() { id, content }: PostTweetDTO,
   ): Promise<PostTweetResponse> {
-    return;
+    const res = await this.tweetService.postTweet(id, content);
+    return res;
   }
 
   @ApiOperation({ summary: 'ツイート検索' })
@@ -40,6 +42,7 @@ export class TweetController {
   async searchTweet(
     @Body() { text }: SearchTweetDTO,
   ): Promise<SearchTweetResponse> {
-    return;
+    const res = await this.tweetService.searchTweet(text);
+    return res;
   }
 }

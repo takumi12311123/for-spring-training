@@ -13,7 +13,7 @@ export class Tweet {
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id!: number;
 
-  @Column('character varying', { name: 'name' })
+  @Column('character varying', { name: 'content' })
   content: string;
 
   //レコードを挿入したときに、勝手にその時の時間を入れてくれる

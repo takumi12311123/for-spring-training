@@ -5,7 +5,7 @@ export class PostTweetDTO {
   @ApiProperty()
   @IsNumber({}, { message: 'idは文字です' })
   @IsNotEmpty({ message: 'idは必須です' })
-  id: string;
+  id: number;
 
   @ApiProperty()
   @IsString({ message: 'contentは文字です' })
