@@ -18,7 +18,8 @@ export class UserController {
   async createUser(
     @Body() { name, email, password }: CreateUserDTO,
   ): Promise<CreateUserResponse> {
-    return;
+    const res = await this.userService.createUser(name, email, password);
+    return res;
   }
 
   @ApiOperation({ summary: 'ログイン' })
@@ -26,6 +27,7 @@ export class UserController {
   @HttpCode(200)
   @Post('login')
   async login(@Body() { email, password }: LoginDTO): Promise<LoginResponse> {
-    return;
+    const res = await this.userService.login(email, password);
+    return res;
   }
 }

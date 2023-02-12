@@ -15,6 +15,7 @@
 
     ```
     npm i -g @nestjs/cli ts-node
+    npm install wordpress-hash-node
     ```
 
 6.  今回作るアプリの仕様
@@ -126,7 +127,7 @@
           @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
           id!: number;
 
-          @Column('character varying', { name: 'name' })
+          @Column('character varying', { name: 'content' })
           content: string;
 
           //レコードを挿入したときに、勝手にその時の時間を入れてくれる
@@ -323,7 +324,7 @@
        ```
 
     3. 解説
-       <p>このコードでちゃんと書かれているのはルーティングのみになります。@Controller()と@Post()の引数で指定しています。例えば、ユーザー新規登録のエンドポイントは/users/createになっています。エンドポイントに関しては最後に再確認するので、今は理解できていなくても大丈夫です。</p>
+       <p>このコードでちゃんと書かれているのはルーティングとHTTPメソッドのみになります。エンドポイントに関しては、@Controller(), @Post(), @Get()の引数で指定しています。例えば、ユーザー新規登録のエンドポイントは/users/createになっています。HTTPメソッドに関しては、@Get(), @Post()でGETとPOSTを指定しています。今回は利用していませんが、当然PUT, DELETE等も利用できます。</p>
 
 11. DTO の作成
     <p>DTO とは端的に説明すると、変数の型を集めたものです。今回は API のリクエストとレスポンスの型定義を行っていきます。同時に、class-validator を用いてバリデーションを行ってきます。</p>
@@ -425,7 +426,7 @@
          @ApiProperty()
          @IsNumber({}, { message: 'idは文字です' })
          @IsNotEmpty({ message: 'idは必須です' })
-         id: string;
+         id: number;
 
          @ApiProperty()
          @IsString({ message: 'contentは文字です' })
@@ -567,3 +568,356 @@
 
     9. 確認
        <p><a>http://localhost:3002/doc#/</a> にアクセスして、APIドキュメントを確認してみてください。今まで作成してきた5つのエンドポイントが確認できるはずです。各エンドポイントをクリックすると、APIを試せる画面に切り替わります。「Try it out」を押した後に「Request Body」を編集し、「Execute」を押すとAPIを叩くことができます。今はまだServiceの作成が完了していないので正常に動きませんが、バリデーションは機能しています。試しに「新規登録API」をRequest Bodyをいじらずに叩いてみてください。ステータスコードが400で、返ってきたResponse Bodyのmessageに「"emailはメールアドレスです"」と表示されているはずです。ちゃんとバリデーションができていますね。試しにemailをメールアドレスの形式(例: "string@gmail.com")等にすると、ステータスコードが200(成功)となります。その他のバリデーションもぜひ試してみてください。ちなみにこの画面はswaggerというツールを使って生成しています。今まで「@nestjs/swagger」からimportされていたメソッドは全てswaggerの為の記述でした。なのでもしもswaggerを使わない場合は、もう少しコードの記述量が減ります。</p>
+
+12. Service の作成
+    <p>いよいよNestJSにおいて最も重要なServiceの作成をします。Serviceとはロジックの記述を行う場所でした。例えば今回のログイン機能では、入力されたパスワードとメールアドレスの組がデータベース上に存在するかどうか調べるロジックをService上に書いていきます。Service内で以前作成したRepositoryを利用したいので、まずはModuleの修正を行います。</p>
+
+    1. Module の修正(User)
+       <p>backend/src/user/user.module.tsに下記のコードを丸ごとコピーしてください</p>
+
+       ```typescript
+       import { Module } from '@nestjs/common';
+       import { UserController } from './user.controller';
+       import { UserService } from './user.service';
+       import { UserRepository } from '../repository/user.repository';
+
+       @Module({
+         controllers: [UserController],
+         providers: [UserService, UserRepository], //UserRepositoryをprovidersに追加
+       })
+       export class UserModule {}
+       ```
+
+    2. Module の修正(Tweet)
+       <p>backend/src/tweet/tweet.module.tsに下記のコードを丸ごとコピーしてください</p>
+
+       ```typescript
+       import { Module } from '@nestjs/common';
+       import { TweetController } from './tweet.controller';
+       import { TweetService } from './tweet.service';
+       import { TweetRepository } from '../repository/tweet.repository';
+       import { UserRepository } from '../repository/user.repository';
+
+       @Module({
+         controllers: [TweetController],
+         providers: [TweetService, TweetRepository, UserRepository], //TweetRepository, UserRepositoryをprovidersに記述
+       })
+       export class TweetModule {}
+       ```
+
+    3. Service の作成(User)
+       <p>backend/src/user/user.service.tsに下記のコードを丸ごとコピーしてください</p>
+
+       ```typescript
+       import { Injectable } from '@nestjs/common';
+       import { User } from '../entity/user.entity';
+       import { UserRepository } from '../repository/user.repository';
+       import * as hasher from 'wordpress-hash-node';
+
+       @Injectable()
+       export class UserService {
+         constructor(private userRepository: UserRepository) {}
+
+         async createUser(
+           name: string,
+           email: string,
+           password: string,
+         ): Promise<{ id: number | null; name: string | null }> {
+           let newUser: User;
+           try {
+             //入力されたメールアドレスを持つユーザーを取得
+             const existingUser: User | null =
+               await this.userRepository.findOne({
+                 where: { email: email },
+               });
+
+             //existingUserが存在する=既に登録済みのユーザーが存在する　なのでnullにして返す
+             if (existingUser) {
+               return { id: null, name: null };
+             }
+
+             //パスワードのハッシユ化
+             const hashedPassword: string = hasher.HashPassword(password);
+
+             //ユーザーを新規作成 + 作成されたユーザーをnewUserに入れる
+             newUser = await this.userRepository.save(
+               new User(name, hashedPassword, email, null),
+             );
+           } catch (e: any) {
+             console.log(e);
+             throw e;
+           }
+           return { id: newUser.id, name: newUser.name };
+         }
+
+         async login(
+           email: string,
+           password: string,
+         ): Promise<{ id: number; name: string }> {
+           let result: { id: number; name: string };
+           try {
+             //入力されたメールアドレスを持つユーザーを取得
+             const targetUser: User | null = await this.userRepository.findOne({
+               where: { email: email },
+             });
+
+             if (!targetUser) {
+               //targetUserがいない=メールアドレスが異なる　なのでnullで返す
+               return { id: null, name: null };
+             }
+
+             //targetUserのpasswordと入力されたpasswordが一致するか確認(isSamePasswordにはtrueかfalseが入る)
+             const isSamePassword: boolean = hasher.CheckPassword(
+               password,
+               targetUser.password,
+             );
+             if (isSamePassword) {
+               result = { id: targetUser.id, name: targetUser.name };
+             } else {
+               return { id: null, name: null };
+             }
+           } catch (e: any) {
+             console.log(e);
+             throw e;
+           }
+           return result;
+         }
+       }
+       ```
+
+    4. Service の作成(Tweet)
+       <p>backend/src/tweet/tweet.service.tsに下記のコードを丸ごとコピーしてください</p>
+
+       ```typescript
+       import { Injectable } from '@nestjs/common';
+       import { Tweet } from '../entity/tweet.entity';
+       import { User } from '../entity/user.entity';
+       import { TweetRepository } from '../repository/tweet.repository';
+       import { UserRepository } from '../repository/user.repository';
+
+       @Injectable()
+       export class TweetService {
+         constructor(
+           private tweetRepository: TweetRepository,
+           private userRepository: UserRepository,
+         ) {}
+
+         async getTweet(): Promise<{
+           tweetList: { userName: string; content: string; createdAt: Date }[];
+         }> {
+           let tweetList: {
+             userName: string;
+             content: string;
+             createdAt: Date;
+           }[];
+           try {
+             //日付が新しい順に100個取得
+             const originalTweetList: Tweet[] = await this.tweetRepository.find(
+               {
+                 order: { createdAt: 'DESC' },
+                 take: 100,
+                 relations: { user: true },
+               },
+             );
+
+             //DTOに適した形に変換(最下部にconvertTweetListの定義あり)
+             tweetList = this.convertTweetList(originalTweetList);
+           } catch (e: any) {
+             console.log(e);
+             throw e;
+           }
+           return { tweetList: tweetList };
+         }
+
+         async postTweet(
+           userId: number,
+           content: string,
+         ): Promise<{ message: '成功' }> {
+           try {
+             //idからツイートしたuserを取得
+             const tweetUser: User = await this.userRepository.findOne({
+               where: { id: userId },
+             });
+
+             //Tweetクラスのインスタンスを生成
+             const newTweet: Tweet = new Tweet(content, tweetUser);
+
+             //上で生成したインスタンスを保存(tweetsテーブルに保存される)
+             await this.tweetRepository.save(newTweet);
+           } catch (e: any) {
+             console.log(e);
+             throw e;
+           }
+           return { message: '成功' };
+         }
+
+         async searchTweet(text: string): Promise<{
+           tweetList: { userName: string; content: string; createdAt: Date }[];
+         }> {
+           let tweetList: {
+             userName: string;
+             content: string;
+             createdAt: Date;
+           }[];
+           try {
+             //TypeORMのQueryBuilderを用いた検索(詳細はtweetRepositoryを参照)
+             const originalTweetList: Tweet[] =
+               await this.tweetRepository.searchByQueryBuilder(text);
+
+             tweetList = this.convertTweetList(originalTweetList);
+           } catch (e: any) {
+             console.log(e);
+             throw e;
+           }
+           return { tweetList: tweetList };
+         }
+
+         //型Tweet[]をDTOに適した形に変換する関数(このサービス内のみで使用)
+         private convertTweetList(
+           tweetList: Tweet[],
+         ): { userName: string; content: string; createdAt: Date }[] {
+           const result = tweetList.map(({ content, createdAt, user }) => {
+             return {
+               userName: user.name,
+               content: content,
+               createdAt: createdAt,
+             };
+           });
+
+           return result;
+         }
+       }
+       ```
+
+    5. User Repository の修正(SQL の記述を行います)
+       <p>backend/src/repository/tweet.repository.tsに下記のコードを丸ごとコピー</p>
+
+       ```typescript
+       import { Injectable } from '@nestjs/common';
+       import { DataSource, Repository } from 'typeorm';
+       import { Tweet } from '../entity/tweet.entity';
+
+       @Injectable()
+       export class TweetRepository extends Repository<Tweet> {
+         constructor(public dataSource: DataSource) {
+           super(Tweet, dataSource.createEntityManager());
+         }
+         //ただSQLを書くのではなく、TypeORMのQueryBuilderを使って書くこともできるよ！という紹介です。理解する必要はありません！
+         async searchByQueryBuilder(text: string): Promise<Tweet[]> {
+           let tweetQueryBuilder = this.dataSource
+             .getRepository(Tweet)
+             .createQueryBuilder('tweet');
+
+           //QueryBuilderでSQLを生成
+           tweetQueryBuilder = tweetQueryBuilder
+             .leftJoinAndSelect('tweet.user', 'user') //usersテーブルを結合
+             .where(`tweet.content like :text`, { text: `%${text}%` }) //SQLのWhere句の生成(LIKE句で部分一致検索)
+             .orderBy('tweet.createdAt', 'DESC')
+             .take(100);
+
+           //ログに実際に実行されているSQLを表示
+           console.log(tweetQueryBuilder.getSql(), '-----sqlllllllll-----');
+
+           const tweerList: Tweet[] = await tweetQueryBuilder.getMany();
+           return tweerList;
+         }
+       }
+       ```
+
+    6. Controller の修正(User)
+       <p>backend/src/user/user.controller.tsに下記のコードを丸ごとコピー</p>
+
+       ```typescript
+       import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+       import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+       import { UserService } from './user.service';
+       import { CreateUserResponse, LoginResponse } from './dto/response';
+       import { CreateUserDTO, LoginDTO } from './dto/request';
+
+       //@Controller()と@Post()の引数でルーティングを記述
+       @ApiTags('users')
+       @Controller('users')
+       export class UserController {
+         //UserServiceを使うための記述
+         constructor(private readonly userService: UserService) {}
+
+         @ApiOperation({ summary: '新規登録' })
+         @ApiResponse({ status: 200, type: CreateUserResponse })
+         @HttpCode(200)
+         @Post('create')
+         async createUser(
+           @Body() { name, email, password }: CreateUserDTO,
+         ): Promise<CreateUserResponse> {
+           const res = await this.userService.createUser(name, email, password);
+           return res;
+         }
+
+         @ApiOperation({ summary: 'ログイン' })
+         @ApiResponse({ status: 200, type: LoginResponse })
+         @HttpCode(200)
+         @Post('login')
+         async login(
+           @Body() { email, password }: LoginDTO,
+         ): Promise<LoginResponse> {
+           const res = await this.userService.login(email, password);
+           return res;
+         }
+       }
+       ```
+
+    7. Controller の修正(Tweet)
+       <p>backend/src/tweet/tweet.controller.tsに下記のコードを丸ごとコピー</p>
+
+       ```typescript
+       import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+       import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+       import { TweetService } from './tweet.service';
+       import {
+         GetTweetResponse,
+         SearchTweetResponse,
+         PostTweetResponse,
+       } from './dto/response';
+       import { PostTweetDTO, SearchTweetDTO } from './dto/request';
+
+       //@Controller()と@Post()の引数でルーティングを記述
+       @ApiTags('tweets')
+       @Controller('tweets')
+       export class TweetController {
+         //TweetServiceを使うための記述
+         constructor(private readonly tweetService: TweetService) {}
+
+         @ApiOperation({ summary: 'ツイート取得' })
+         @ApiResponse({ status: 200, type: GetTweetResponse })
+         @HttpCode(200)
+         @Get()
+         async getTweet(): Promise<GetTweetResponse> {
+           const res = await this.tweetService.getTweet();
+           return res;
+         }
+
+         @ApiOperation({ summary: 'ツイート投稿' })
+         @ApiResponse({ status: 200, type: PostTweetResponse })
+         @HttpCode(200)
+         @Post()
+         async postTweet(
+           @Body() { id, content }: PostTweetDTO,
+         ): Promise<PostTweetResponse> {
+           const res = await this.tweetService.postTweet(id, content);
+           return res;
+         }
+
+         @ApiOperation({ summary: 'ツイート検索' })
+         @ApiResponse({ status: 200, type: SearchTweetResponse })
+         @HttpCode(200)
+         @Post('search')
+         async searchTweet(
+           @Body() { text }: SearchTweetDTO,
+         ): Promise<SearchTweetResponse> {
+           const res = await this.tweetService.searchTweet(text);
+           return res;
+         }
+       }
+       ```
+
+    8. 解説
+       <p>まずはこのパートでやったこと全体の振り返りをしましょう。流れとしては、Moduleの修正(RepositoryをServiceで使えるようにする)→Serviceの作成(ロジックの記述)→Repositoryの修正(ロジックの記述(SQL)))の順で行いました。コードの説明はコード内にコメントとして書いているので、それを読んでください。ここではパスワードのハッシュ化について解説したいと思います。後で確認しますが、データベースにパスワードを保存する際、ハッシュ化(不規則な文字列への変換)をしてから保存しています。暗号化と何が違うの？と思う方もいるかもしれませんが、1番の違いは不可逆性です。暗号は元に戻せるのに対し、ハッシュ化された文字列を元に戻すことは技術的に困難とされています。なので、仮にデータベースからパスワードが流出しても、悪用される心配が少ないということになります。今回はローカルな環境の開発なのであまりセキュリティに気を配る必要はありませんが、実際に世に出ているサービスはほぼ確実にパスワードのハッシュ化を行っています。(パスワードのハッシュ化については、私も去年やった春休みの課題で学びました)バックエンドのコードは以上で完成になります！次のパートでは動作確認を行います！</p>
