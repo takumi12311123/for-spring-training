@@ -1,18 +1,18 @@
 # for-spring-training
 
-### push のルール
+### pushのルール
 
 #### frontend
 
-dev-frontend に push をする
+dev-frontendにpushをする
 
 #### backend
 
-dev-backend に push をする
+dev-backendにpushをする
 
-2 年生に渡すのが`main`になるように
+2年生に渡すのが`main`になるように
 
-### 2 年生春休み課題
+### 2年生春休み課題
 
 環境構築方法
 
