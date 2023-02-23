@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
+import axios from "axios"; 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Signup = () => {
@@ -11,27 +12,16 @@ const Signup = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-  
     try {
-      const response = await fetch('http://localhost:3002/users/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
-  
-      if (response.ok) {
-        // サインアップに成功した場合
-        navigate('/');
-      } else {
-        // サインアップに失敗した場合
-        console.log('Signup failed');
-      }
+      // APIエンドポイントにPOSTリクエストを送信する
+      const response = await axios.post("http://localhost:3002/users/create", { email, password });
+      // サインアップに成功した場合、ログインページにリダイレクトする
+      navigate('/login');
     } catch (error) {
+      // サインアップに失敗した場合、エラーメッセージを表示するなどの処理を行う
       console.error(error);
     }
-  };  
+  };
 
   return (
     <Container className="my-5">
