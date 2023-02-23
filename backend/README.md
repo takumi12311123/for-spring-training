@@ -933,5 +933,65 @@
 1. 動作確認
    <p>まず初めに、再度 <a>http://localhost:3002/doc#/</a> にアクセスしてみてください。その後、前回やったように新規登録APIを叩いてみてください。(バリデーションに引っかからないよう、適切な値をRequest bodyに設定してみてください)今までの工程が全てうまくいっていれば、データベース上にレコードが挿入されているはずです。再度Table Plusを開いて、usersテーブルを確認してみてください。実際に先ほどPOSTした値が挿入されているはずです。同時に、パスワードがハッシュ化されて、読み取れない形になっていることを確認できると思います。その他APIに関しても、実際に操作して正常に動作することを必ず確認してください。レコード削除・編集に関しては今回APIを用意していないので、必要であればTable Plus上から行ってください。(もちろん自分で新しくAPIを作成してもらっても大丈夫です！ただ、エンドポイントが重複しないよう気をつけてください)</p>
 
+1. CORS の設定
+   <p>フロントエンド側からAPIを叩くにはCORSの設定をしておく必要があります。ここでは説明しないので、気になる方は調べてみてください！</p>
+
+   1. CORS 設定ファイルの作成
+      <p>backend/src に cors.middleware.ts というファイルを作成し、下記のコードをコピー</p>
+
+      ```typescript
+      import { Injectable, NestMiddleware } from '@nestjs/common';
+      import { Request, Response, NextFunction } from 'express';
+
+      @Injectable()
+      export class CorsMiddleware implements NestMiddleware {
+        use(req: Request, res: Response, next: NextFunction) {
+          res.header('Access-Control-Allow-Origin', '*');
+          res.header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept',
+          );
+          next();
+        }
+      }
+      ```
+
+   2. app.module.ts の修正
+      <p>backend/src/app.module.tsに下記のコードを丸ごとコピー</p>
+
+      ```typescript
+      import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+      import { AppController } from './app.controller';
+      import { AppService } from './app.service';
+      import { TypeOrmModule } from '@nestjs/typeorm';
+      import { UserModule } from './user/user.module';
+      import { TweetModule } from './tweet/tweet.module';
+      import { CorsMiddleware } from './cors.middleware';
+
+      @Module({
+        imports: [
+          TypeOrmModule.forRoot({
+            type: 'postgres',
+            host: '172.23.0.3',
+            port: 5432,
+            username: 'postgres',
+            password: 'postgres',
+            database: 'twitter',
+            entities: ['dist/entity/*.entity.{js,ts}'],
+            synchronize: true,
+          }),
+          UserModule,
+          TweetModule,
+        ],
+        controllers: [AppController],
+        providers: [AppService],
+      })
+      export class AppModule implements NestModule {
+        configure(consumer: MiddlewareConsumer) {
+          consumer.apply(CorsMiddleware).forRoutes('*');
+        }
+      }
+      ```
+
 1. 終わりに
    <p>正直全然わかんなかった！という人が大半だと思います。でも大丈夫です。最初にも伝えた通り、今回はコードの理解ではなく、WEBアプリケーション作成に慣れてもらうことを目的としています。<s>私も去年先輩の作ってくれた教材を殆ど理解できなかった</s> とりあえず動くものをプログラミングで作ることができた！という実感が得られれば十分だと思います！今後のゼミの活動で否が応でも何かしら作ることになるので、1年後には余裕で理解できるようになっていると思います！お疲れ様でした！フロントエンド編でも頑張ってください！！</p>
