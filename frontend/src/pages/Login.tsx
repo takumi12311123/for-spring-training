@@ -4,18 +4,34 @@ import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
   const navigate = useNavigate()
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // ここでログイン処理を行う
-
-    // ログインに成功した場合
-    navigate('/')
-  };
+  
+    try {
+      const response = await fetch('http://localhost:3002/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+  
+      if (response.ok) {
+        // ログインに成功した場合
+        navigate('/');
+      } else {
+        // ログインに失敗した場合
+        console.log('Login failed');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };  
 
   return (
     <Container className="my-5">
@@ -25,13 +41,13 @@ const Login = () => {
             <Card.Header className="text-center font-weight-bold">Login</Card.Header>
             <Card.Body>
               <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="formUsername">
-                  <Form.Label>Username</Form.Label>
+                <Form.Group controlId="formEmail">
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder="Enter username"
-                    value={username}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                    placeholder="Enter email"
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   />
                 </Form.Group>
 
