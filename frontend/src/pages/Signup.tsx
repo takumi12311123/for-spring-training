@@ -16,6 +16,7 @@ import axios from 'axios';
 
 function Signup() {
   // サインアップ処理
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -24,6 +25,7 @@ function Signup() {
     event.preventDefault();
     try {
       const response = axios.post('http://localhost:3002/users/create', {
+        name: name, 
         email: email,
         password: password
       });
@@ -47,6 +49,7 @@ function Signup() {
             <MDBCardBody>
 
               <form onSubmit={handleSignUp}>
+                <MDBInput wrapperClass='mb-4' label='name' id='form1' type='name' value={name} onChange={(e) => setName(e.target.value)}/>
                 <MDBInput wrapperClass='mb-4' label='Email address' id='form1' type='email' value={email} onChange={(e) => setEmail(e.target.value)}/>
                 <MDBInput wrapperClass='mb-4' label='Password' id='form2' type='password' value={password} onChange={(e) => setPassword(e.target.value)}/>
 
