@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   MDBCard,
   MDBCardBody,
@@ -8,127 +8,106 @@ import {
   MDBIcon,
   MDBInput,
   MDBRow,
+  MDBTextArea,
+  MDBBtn,
 } from "mdb-react-ui-kit";
+import { useNavigate } from "react-router-dom"
+import axios from "axios";
 
-export default function Basic() {
+interface Tweets {
+  userName: string;
+  content: string;
+  createdAt: string;
+}
+
+export default function Home() {
+  const response = {
+    tweetList : [
+      {
+    userName: "yoshiki",
+    content: "hello",
+    createdAt: "2021-09-01",
+    }]}
+  const navigate = useNavigate()
+  const [newTweet, setNewTweet] = useState("");
+  const [tweetList, setTweetList] = useState<Tweets[]>(response.tweetList);
+  const [search, setSearch ] = useState('') 
+  const handleSignOut = () => {
+    navigate('/login')
+  }
+  const handleTweetChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewTweet(event.target.value)}
+  
+  const handleTweetSubmit = () => {
+    try {
+      if(newTweet !== ""){
+        const newTweets = [...tweetList, {userName: "yoshiki", content: newTweet, createdAt: "2021-09-01"}]
+        setTweetList(newTweets)
+        setNewTweet("")
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleSearch = (e:any) =>{
+    setSearch(e.target.value)
+  }
+  const handleSearchPost = () => {
+    console.log('検索:', search)
+    const res = "hello"
+  }
+
   return (
-    <MDBContainer className="mt-5" style={{ maxWidth: "1000px" }}>
-      <MDBRow className="justify-content-center">
+    <MDBContainer className="mt-5  w-screen" >
+      <MDBBtn color='danger' rounded className='float-start w-2' onClick={handleSignOut}>{' '}
+                sign-out
+      </MDBBtn>
+      <MDBRow className="justify-content-center w-100">
         <MDBCol md="8" lg="6">
+        
           <MDBCard
             className="shadow-0 border"
             style={{ backgroundColor: "#f0f2f5" }}
-          >
-            <MDBCardBody>
-              <MDBInput wrapperClass="mb-4" placeholder="Type comment..." label="+ Add a note" />
+          >   
+            <MDBCardBody>           
+              {/* 検索部分 */}
+              <div className="mb-6">
+                <MDBInput wrapperClass="mb-2" placeholder={search} label="Search" onChange={handleSearch} />
+                <MDBBtn className="float-end" onClick={handleSearchPost}>検索</MDBBtn>
+              </div>
+              <div
+                className="mb-4"
+                style={{ maxHeight: "400px", overflow: "scroll" }}
+              >
 
-              <MDBCard className="mb-4">
+              {/* tweet表示部分 */}
+              {tweetList.map((data: Tweets, index: number) =>(
+              <MDBCard className="mb-4" key={index}>
                 <MDBCardBody>
-                  <p>Type your note, and hit enter to add it</p>
-
-                  <div className="d-flex justify-content-between">
-                    <div className="d-flex flex-row align-items-center">
+                  <p className="float-end">{data.createdAt}</p>
+                  <div className="d-flex justify-content-between mb-3">             
+                    <div className="d-flex flex-row align-items-center pl">
                       <MDBCardImage
-                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(4).webp"
+                        src="https://cdn.w3.org/thumbnails/200/avatars/7mtpjeh4in8kw04ksso8ss4ocsksswo.webp"
                         alt="avatar"
                         width="25"
                         height="25"
                       />
-                      <p className="small mb-0 ms-2">Martha</p>
-                    </div>
-                    <div className="d-flex flex-row align-items-center">
-                      <p className="small text-muted mb-0">Upvote?</p>
-                      <MDBIcon
-                        far
-                        icon="thumbs-up mx-2 fa-xs text-black"
-                        style={{ marginTop: "-0.16rem" }}
-                      />
-                      <p className="small text-muted mb-0">3</p>
+                      <p className="small mb-3 ms-2">{data.userName}</p>
                     </div>
                   </div>
+                  <p className="">{data.content}</p>
                 </MDBCardBody>
               </MDBCard>
-
-              <MDBCard className="mb-4">
-                <MDBCardBody>
-                  <p>Type your note, and hit enter to add it</p>
-
-                  <div className="d-flex justify-content-between">
-                    <div className="d-flex flex-row align-items-center">
-                      <MDBCardImage
-                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(32).webp"
-                        alt="avatar"
-                        width="25"
-                        height="25"
-                      />
-                      <p className="small mb-0 ms-2">Johny</p>
-                    </div>
-                    <div className="d-flex flex-row align-items-center">
-                      <p className="small text-muted mb-0">Upvote?</p>
-                      <MDBIcon
-                        far
-                        icon="thumbs-up mx-2 fa-xs text-black"
-                        style={{ marginTop: "-0.16rem" }}
-                      />
-                      <p className="small text-muted mb-0">4</p>
-                    </div>
-                  </div>
-                </MDBCardBody>
-              </MDBCard>
-
-              <MDBCard className="mb-4">
-                <MDBCardBody>
-                  <p>Type your note, and hit enter to add it</p>
-
-                  <div className="d-flex justify-content-between">
-                    <div className="d-flex flex-row align-items-center">
-                      <MDBCardImage
-                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(31).webp"
-                        alt="avatar"
-                        width="25"
-                        height="25"
-                      />
-                      <p className="small mb-0 ms-2">Mary Kate</p>
-                    </div>
-                    <div className="d-flex flex-row align-items-center text-primary">
-                      <p className="small mb-0">Upvoted</p>
-                      <MDBIcon
-                        fas
-                        icon="thumbs-up mx-2 fa-xs"
-                        style={{ marginTop: "-0.16rem" }}
-                      />
-                      <p className="small mb-0">2</p>
-                    </div>
-                  </div>
-                </MDBCardBody>
-              </MDBCard>
-
-              <MDBCard className="mb-4">
-                <MDBCardBody>
-                  <p>Type your note, and hit enter to add it</p>
-
-                  <div className="d-flex justify-content-between">
-                    <div className="d-flex flex-row align-items-center">
-                      <MDBCardImage
-                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(32).webp"
-                        alt="avatar"
-                        width="25"
-                        height="25"
-                      />
-                      <p className="small mb-0 ms-2">Johny</p>
-                    </div>
-                    <div className="d-flex flex-row align-items-center">
-                      <p className="small text-muted mb-0">Upvote?</p>
-                      <MDBIcon
-                        far
-                        icon="thumbs-up mx-2 fa-xs text-black"
-                        style={{ marginTop: "-0.16rem" }}
-                      />
-                      <p className="small text-muted mb-0"></p>
-                    </div>
-                  </div>
-                </MDBCardBody>
-              </MDBCard>
+              )
+              )}
+              </div>
+              <p className="border-top pt-2">message</p>
+              <MDBTextArea style={{ backgroundColor: '#fff'}}className = "text-dark" color="primary" contrast id='textAreaExample' label='message' rows={4} onChange={handleTweetChange}></MDBTextArea>
+              <MDBBtn color='primary' rounded className='float-end mt-2' onClick={handleTweetSubmit}>{' '}
+                Send{' '}
+              </MDBBtn>
+    
             </MDBCardBody>
           </MDBCard>
         </MDBCol>

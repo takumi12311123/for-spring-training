@@ -29,3 +29,16 @@ frontend % npm install react-bootstrap bootstrap
 ```
 
 このコマンドを実行することで React Bootstrap が使用できるようになります。
+今回はUIをReact Bootstrapを使用して作成していきます。
+React Bootstrapの詳細が気になる方は、こちらを見てください
+
+```
+
+```
+
+
+
+
+
+
+
