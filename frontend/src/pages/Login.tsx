@@ -1,69 +1,71 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
-import axios from "axios"; // axiosをインポートする
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  MDBBtn,
+  MDBContainer,
+  MDBCard,
+  MDBCardBody,
+  MDBCardImage,
+  MDBRow,
+  MDBCol,
+  MDBInput,
+  MDBCheckbox
+}
+from 'mdb-react-ui-kit';
+import axios from 'axios';
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  const navigate = useNavigate()
+function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSignIn = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      // APIエンドポイントにPOSTリクエストを送信する
-      const response = await axios.post("http://localhost:3002/users/login", { email, password });
-      // ログインに成功した場合、ホームページにリダイレクトする
+      const response = axios.post('http://localhost:3002/users/login', {
+        email: email, 
+        password: password
+      });
       navigate('/');
     } catch (error) {
-      // ログインに失敗した場合、エラーメッセージを表示するなどの処理を行う
       console.error(error);
     }
   };
-
   return (
-    <Container className="my-5">
-      <Row className="justify-content-md-center">
-        <Col xs={6}>
-          <Card>
-            <Card.Header className="text-center font-weight-bold">Login</Card.Header>
-            <Card.Body>
-              <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="formEmail">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter email"
-                    value={email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                  />
-                </Form.Group>
+    <MDBContainer className='my-5'>
+      <MDBCard>
 
-                <Form.Group controlId="formPassword">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  />
-                </Form.Group>
+        <MDBRow className='g-0 d-flex align-items-center'>
 
-                <Button variant="primary" type="submit">
-                  Login
-                </Button>
-                <Button variant="secondary" className="ml-2" onClick={() => navigate('/signup')}>
-                  Sign up
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+          <MDBCol md='4'>
+            <MDBCardImage src='https://mdbootstrap.com/img/new/ecommerce/vertical/004.jpg' alt='phone' className='rounded-t-5 rounded-tr-lg-0' fluid />
+          </MDBCol>
+
+          <MDBCol md='8'>
+
+            <MDBCardBody>
+
+              <form onSubmit={handleSignIn}>
+                <MDBInput wrapperClass='mb-4' label='Email address' id='form1' type='email' value={email} onChange={(e) => setEmail(e.target.value)}/>
+                <MDBInput wrapperClass='mb-4' label='Password' id='form2' type='password' value={password} onChange={(e) => setPassword(e.target.value)}/>
+
+                <MDBBtn className="mb-4 w-100">Sign in</MDBBtn>
+
+                <div className="d-flex justify-content-between mx-4 mb-4">
+                  {/* <MDBCheckbox name='flexCheck' value='' id='flexCheckDefault' label='Remember me' /> */}
+                  <a href="signup">Create new an account?</a>
+                </div>
+              </form>
+
+            </MDBCardBody>
+
+          </MDBCol>
+
+        </MDBRow>
+
+      </MDBCard>
+    </MDBContainer>
   );
-};
+}
 
 export default Login;
