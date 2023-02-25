@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { TweetModule } from './tweet/tweet.module';
+import { CorsMiddleware } from './cors.middleware';
 
 @Module({
   imports: [
@@ -23,4 +24,8 @@ import { TweetModule } from './tweet/tweet.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CorsMiddleware).forRoutes('*');
+  }
+}
