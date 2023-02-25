@@ -69,7 +69,7 @@ function Login() {
                 <MDBBtn className="mb-4 w-100">Sign in</MDBBtn>
 
                 <div className="d-flex justify-content-between mx-4 mb-4">
-                  <Link to="signup">Create a new account?</Link>
+                  <Link to="/signup">Create a new account?</Link>
                 </div>
               </form>
             </MDBCardBody>

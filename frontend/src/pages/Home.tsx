@@ -88,6 +88,12 @@ export default function Home() {
     sessionStorage.clear();
     navigate("/login");
   };
+
+  // ログインしていない場合はログインページに遷移する処理
+  if (!sessionStorage.getItem("id")) {
+    navigate("/login");
+  }
+
   return (
     <MDBContainer className="mt-5  w-screen">
       <MDBBtn
