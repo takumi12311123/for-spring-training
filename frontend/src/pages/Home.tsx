@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MDBCard,
   MDBCardBody,
@@ -20,6 +20,10 @@ interface Tweets {
   createdAt: string;
 }
 
+interface User {
+  email: string;
+}
+
 export default function Home() {
   const response = {
     tweetList: [
@@ -34,9 +38,23 @@ export default function Home() {
   const [newTweet, setNewTweet] = useState("");
   const [tweetList, setTweetList] = useState<Tweets[]>(response.tweetList);
   const [search, setSearch] = useState("");
+  const [userInfo, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
+    if(storedUserInfo.name){
+      setUser(storedUserInfo);
+    } else {
+      navigate('/login');
+    }
+  }, []);
+
   const handleSignOut = () => {
+    setUser(null);
+    localStorage.removeItem("userInfo")
     navigate("/login");
   };
+
   const handleTweetChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewTweet(event.target.value);
   };

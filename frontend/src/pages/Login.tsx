@@ -18,6 +18,7 @@ function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,7 +27,9 @@ function Login() {
         email: email, 
         password: password
       });
-      console.log(response.data);
+      setUserInfo(response.data);
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+      console.log(response.data)
       navigate('/');
     } catch (error) {
       console.error(error);
