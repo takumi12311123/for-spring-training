@@ -19,13 +19,14 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignIn = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      const response = axios.post('http://localhost:3002/users/login', {
+      const response = await axios.post('http://localhost:3002/users/login', {
         email: email, 
         password: password
       });
+      console.log(response.data);
       navigate('/');
     } catch (error) {
       console.error(error);
@@ -53,7 +54,7 @@ function Login() {
 
                 <div className="d-flex justify-content-between mx-4 mb-4">
                   {/* <MDBCheckbox name='flexCheck' value='' id='flexCheckDefault' label='Remember me' /> */}
-                  <a href="signup">Create new an account?</a>
+                  <a href="signup">Create a new account?</a>
                 </div>
               </form>
 

@@ -2,7 +2,7 @@
 
 ## 1. はじめに
 
-はいどうも、フロントエンド編担当の田中善貴です。フロントエンドって聞いてぱっとしない方もいると思いますが要は見た目部分をぱぱっと作ってしまおう編です。
+はいどうも、フロントエンド編担当です。フロントエンドって聞いてぱっとしない方もいると思いますが要は見た目部分をぱぱっと作ってしまおう編です。
 
 今回は2月に学んでもらった React を使ってフロントエンドを実装してもらう訳ですが、 React を開発したのはかの有名な Facebook です。バックエンド編でザッカーバーグが出てきたのは実は伏線だったのかもしれませんね。
 
@@ -32,9 +32,32 @@ frontend % npm install react-bootstrap bootstrap
 今回はUIをReact Bootstrapを使用して作成していきます。
 React Bootstrapの詳細が気になる方は、こちらを見てください
 
-```
+App.ts
+```　
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+
+function App() {
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Routes>
+          <Route path='/' element={<Home/>}/>
+          <Route path='/login' element={<Login/>}/>
+          <Route path='/signup' element={<Signup/>}/>
+        </Routes>
+      </BrowserRouter>
+    </div>
+  );
+}
+
+export default App;
 
 ```
+
+
 
 
 
