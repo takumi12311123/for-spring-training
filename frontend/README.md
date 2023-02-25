@@ -16,7 +16,7 @@
 docker-compose up
 ```
 
-「localhost:3000」(http://localhost:3000)を開き以下の初期画面になっていたら正常です。
+「localhost:3000」[http://localhost:3000]を開き以下の初期画面になっていたら正常です。
 
 ## 3. 初期画面の変更
 
