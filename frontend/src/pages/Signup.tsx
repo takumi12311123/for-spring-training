@@ -19,16 +19,19 @@ function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
 
   const navigate = useNavigate();
-  const handleSignUp = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      const response = axios.post('http://localhost:3002/users/create', {
+      const response = await axios.post('http://localhost:3002/users/create', {
         name: name, 
         email: email,
         password: password
       });
+      setUserInfo(response.data);
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
       navigate('/');
     } catch (error) {
         console.error(error);
@@ -56,7 +59,6 @@ function Signup() {
                 <MDBBtn className="mb-4 w-100">Sign up</MDBBtn>
 
                 <div className="d-flex justify-content-between mx-4 mb-4">
-                  {/* <MDBCheckbox name='flexCheck' value='' id='flexCheckDefault' label='Remember me' /> */}
                   <a href="/login">Already have an account?</a>
                 </div>
                 </form>
