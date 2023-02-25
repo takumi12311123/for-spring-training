@@ -57,6 +57,8 @@ export default App;
 
 ```
 
+Reactrooterというものを用いて、ページの遷移をするためのコードです。
+今回は、Homeがtweet実行、表示画面、
 
 
 
