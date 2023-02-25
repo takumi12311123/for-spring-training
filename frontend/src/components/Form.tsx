@@ -1,6 +1,6 @@
-import React from "react";
-import { Form, Button } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React from 'react';
+import { Form, Button } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 type FormProps = {
   newTweet: string;
@@ -15,9 +15,7 @@ const FormComponent = ({ newTweet, handleSubmit, setNewTweet }: FormProps) => {
         <Form.Control
           type="text"
           value={newTweet}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setNewTweet(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTweet(e.target.value)}
           placeholder="What's on your mind?"
         />
       </Form.Group>

@@ -936,30 +936,61 @@
 1. CORS の設定
    <p>フロントエンド側からAPIを叩くにはCORSの設定をしておく必要があります。ここでは説明しないので、気になる方は調べてみてください！</p>
 
-   1. main.ts の修正
-      <p>backend/src/main.tsに下記のコードを丸ごとコピー</p>
+   1. CORS 設定ファイルの作成
+      <p>backend/src に cors.middleware.ts というファイルを作成し、下記のコードをコピー</p>
 
       ```typescript
-      import { NestFactory } from '@nestjs/core';
-      import { AppModule } from './app.module';
-      import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-      import { ValidationPipe } from '@nestjs/common';
+      import { Injectable, NestMiddleware } from '@nestjs/common';
+      import { Request, Response, NextFunction } from 'express';
 
-      async function bootstrap() {
-        const app = await NestFactory.create(AppModule);
-        // 追加
-        app.enableCors({
-          origin: '*',
-          allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
-        });
-        // ここまで
-        const config = new DocumentBuilder().build();
-        const document = SwaggerModule.createDocument(app, config);
-        app.useGlobalPipes(new ValidationPipe());
-        SwaggerModule.setup('doc', app, document);
-        await app.listen(3002);
+      @Injectable()
+      export class CorsMiddleware implements NestMiddleware {
+        use(req: Request, res: Response, next: NextFunction) {
+          res.header('Access-Control-Allow-Origin', '*');
+          res.header(
+            'Access-Control-Allow-Headers',
+            'Origin, X-Requested-With, Content-Type, Accept',
+          );
+          next();
+        }
       }
-      bootstrap();
+      ```
+
+   2. app.module.ts の修正
+      <p>backend/src/app.module.tsに下記のコードを丸ごとコピー</p>
+
+      ```typescript
+      import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+      import { AppController } from './app.controller';
+      import { AppService } from './app.service';
+      import { TypeOrmModule } from '@nestjs/typeorm';
+      import { UserModule } from './user/user.module';
+      import { TweetModule } from './tweet/tweet.module';
+      import { CorsMiddleware } from './cors.middleware';
+
+      @Module({
+        imports: [
+          TypeOrmModule.forRoot({
+            type: 'postgres',
+            host: '172.23.0.3',
+            port: 5432,
+            username: 'postgres',
+            password: 'postgres',
+            database: 'twitter',
+            entities: ['dist/entity/*.entity.{js,ts}'],
+            synchronize: true,
+          }),
+          UserModule,
+          TweetModule,
+        ],
+        controllers: [AppController],
+        providers: [AppService],
+      })
+      export class AppModule implements NestModule {
+        configure(consumer: MiddlewareConsumer) {
+          consumer.apply(CorsMiddleware).forRoutes('*');
+        }
+      }
       ```
 
 1. 終わりに
