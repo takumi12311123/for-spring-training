@@ -15,10 +15,8 @@ import axios from "axios";
 
 function Login() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -27,7 +25,6 @@ function Login() {
         email: email,
         password: password,
       });
-
       // レスポンスの中身を確認
       console.log(response.data);
       sessionStorage.setItem("id", response.data.id);
@@ -36,7 +33,6 @@ function Login() {
       console.log(sessionStorage.getItem("id"));
       console.log(sessionStorage.getItem("name"));
       navigate("/");
-
     } catch (error) {
       console.error(error);
     }

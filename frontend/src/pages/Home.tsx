@@ -1,6 +1,4 @@
-
 import React, { useEffect, useState } from "react";
-
 import {
   MDBCard,
   MDBCardBody,
@@ -20,10 +18,6 @@ interface Tweets {
   userName: string;
   content: string;
   createdAt: string;
-}
-
-interface User {
-  email: string;
 }
 
 export default function Home() {
@@ -52,24 +46,10 @@ export default function Home() {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
-  const [userInfo, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
-    if(storedUserInfo.name){
-      setUser(storedUserInfo);
-    } else {
-      navigate('/login');
-    }
-  }, []);
-
   const handleSignOut = () => {
-
     sessionStorage.clear();
-
     navigate("/login");
   };
-
   const handleTweetChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewTweet(event.target.value);
   };
@@ -82,7 +62,7 @@ export default function Home() {
         //   { userName: "yoshiki", content: newTweet, createdAt: "2021-09-01" },
         // ];
         // /tweetsにnewTweetを送信してレスポンスを受け取る
-        const res = await axios.post("http://localhost:3002/tweets", {
+        await axios.post("http://localhost:3002/tweets", {
           id: Number(sessionStorage.getItem("id")),
           content: newTweet,
         });
@@ -98,16 +78,19 @@ export default function Home() {
     setSearch(e.target.value);
     console.log(search);
   };
+  const getSearchTweetList = async () => {
+    const res = await axios.post("http://localhost:3002/tweets/search", {
+      text: search,
+    });
+    console.log(res.data.tweetList);
+    setTweetList(res.data.tweetList);
+  };
 
   const handleSearchPost = async (e: any) => {
     e.preventDefault();
     console.log("検索:", search);
     // http://localhost:3002/tweets/searchにsearchを送信してレスポンスを受け取る
-    const res = await axios.post("http://localhost:3002/tweets/search", {
-      text: search,
-    });
-    setSearch("");
-    setTweetList(res.data.tweetList);
+    search === "" ? getTweetList() : getSearchTweetList();
   };
 
   return (
