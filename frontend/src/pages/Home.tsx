@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MDBCard,
   MDBCardBody,
   MDBCardImage,
   MDBCol,
   MDBContainer,
-  MDBIcon,
   MDBInput,
   MDBRow,
   MDBTextArea,
@@ -14,73 +13,81 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-interface Tweets {
+type Tweets = {
   userName: string;
   content: string;
   createdAt: string;
-}
-
-interface User {
-  email: string;
-}
+};
 
 export default function Home() {
-  const response = {
-    tweetList: [
-      {
-        userName: "yoshiki",
-        content: "hello",
-        createdAt: "2021-09-01",
-      },
-    ],
-  };
+  // 遷移するための関数
   const navigate = useNavigate();
-  const [newTweet, setNewTweet] = useState("");
-  const [tweetList, setTweetList] = useState<Tweets[]>(response.tweetList);
-  const [search, setSearch] = useState("");
-  const [userInfo, setUser] = useState<User | null>(null);
 
+  // ーーーーーツイート取得----------
+  // ツイートの一覧を管理するstate
+  const [tweetList, setTweetList] = useState<Tweets[]>([]);
+  // 全件のツイートを取得する処理
+  const getTweetList = async () => {
+    const response = await axios.get("http://localhost:3002/tweets");
+    setTweetList(response.data.tweetList);
+  };
   useEffect(() => {
-    const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || "null");
-    if(storedUserInfo.name){
-      setUser(storedUserInfo);
-    } else {
-      navigate('/login');
-    }
+    // 全件のツイートを取得する処理を呼ぶ関数
+    getTweetList();
   }, []);
 
-  const handleSignOut = () => {
-    setUser(null);
-    localStorage.removeItem("userInfo")
-    navigate("/login");
-  };
-
+  // ーーーーーツイート投稿----------
+  // 入力欄のツイートの内容を管理するstate
+  const [newTweet, setNewTweet] = useState("");
+  // ツイートの内容を変更する処理
   const handleTweetChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewTweet(event.target.value);
   };
-
-  const handleTweetSubmit = () => {
+  // ツイートを投稿する処理
+  const handleTweetSubmit = async () => {
     try {
       if (newTweet !== "") {
-        const newTweets = [
-          ...tweetList,
-          { userName: "yoshiki", content: newTweet, createdAt: "2021-09-01" },
-        ];
-        setTweetList(newTweets);
-        setNewTweet("");
+        await axios.post("http://localhost:3002/tweets", {
+          id: Number(sessionStorage.getItem("id")),
+          content: newTweet,
+        });
+        //  ツイートを投稿したら全件のツイートを再取得する処理を呼ぶ関数
+        getTweetList();
       }
+      //  ツイートを投稿したらツイートの内容を空にする処理
+      setNewTweet("");
     } catch (error) {
       console.error(error);
     }
   };
+
+  // ーーーーー検索の処理----------
+  // 検索欄の内容を管理するstate
+  const [search, setSearch] = useState("");
+  //  検索欄の内容を変更をする処理
   const handleSearch = (e: any) => {
     setSearch(e.target.value);
   };
-  const handleSearchPost = () => {
-    console.log("検索:", search);
-    const res = "hello";
+  // 検索ボタンを押した時の処理
+  const handleSearchPost = async (e: any) => {
+    e.preventDefault();
+    // 検索欄の内容が空の場合は全件のツイートを取得する処理を呼ぶ関数
+    // 検索欄の内容が空でない場合は検索結果のツイートを取得する処理を呼ぶ関数
+    search === "" ? getTweetList() : getSearchTweetList();
+  };
+  // 検索結果のツイートを取得する処理
+  const getSearchTweetList = async () => {
+    const res = await axios.post("http://localhost:3002/tweets/search", {
+      text: search,
+    });
+    setTweetList(res.data.tweetList);
   };
 
+  // サインアウトの処理
+  const handleSignOut = () => {
+    sessionStorage.clear();
+    navigate("/login");
+  };
   return (
     <MDBContainer className="mt-5  w-screen">
       <MDBBtn
@@ -89,7 +96,6 @@ export default function Home() {
         className="float-start w-2"
         onClick={handleSignOut}
       >
-        {" "}
         sign-out
       </MDBBtn>
       <MDBRow className="justify-content-center w-100">
@@ -100,17 +106,18 @@ export default function Home() {
           >
             <MDBCardBody>
               {/* 検索部分 */}
-              <div className="mb-6">
+              <form className="mb-6" onSubmit={handleSearchPost}>
                 <MDBInput
                   wrapperClass="mb-2"
-                  placeholder={search}
+                  placeholder={"ツイートを検索"}
+                  value={search}
                   label="Search"
                   onChange={handleSearch}
                 />
-                <MDBBtn className="float-end" onClick={handleSearchPost}>
+                <MDBBtn className="float-end" type="submit">
                   検索
                 </MDBBtn>
-              </div>
+              </form>
               <div
                 className="mb-4"
                 style={{ maxHeight: "400px", overflow: "scroll" }}
@@ -144,6 +151,7 @@ export default function Home() {
                 contrast
                 id="textAreaExample"
                 label="message"
+                value={newTweet}
                 rows={4}
                 onChange={handleTweetChange}
               ></MDBTextArea>
@@ -153,8 +161,7 @@ export default function Home() {
                 className="float-end mt-2"
                 onClick={handleTweetSubmit}
               >
-                {" "}
-                Send{" "}
+                Send
               </MDBBtn>
             </MDBCardBody>
           </MDBCard>
