@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MDBCard,
   MDBCardBody,
@@ -30,37 +30,64 @@ export default function Home() {
       },
     ],
   };
-  const navigate = useNavigate();
+
+  //http://localhost:3002からのレスポンスを受け取る
+
   const [newTweet, setNewTweet] = useState("");
-  const [tweetList, setTweetList] = useState<Tweets[]>(response.tweetList);
+  const [tweetList, setTweetList] = useState<Tweets[]>([]);
+  const getTweetList = async () => {
+    const response = await axios.get("http://localhost:3002/tweets");
+    console.log(response.data.tweetList);
+    setTweetList(response.data.tweetList);
+  };
+  useEffect(() => {
+    getTweetList();
+  }, []);
+  const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const handleSignOut = () => {
+    sessionStorage.clear();
     navigate("/login");
   };
   const handleTweetChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewTweet(event.target.value);
   };
 
-  const handleTweetSubmit = () => {
+  const handleTweetSubmit = async () => {
     try {
       if (newTweet !== "") {
-        const newTweets = [
-          ...tweetList,
-          { userName: "yoshiki", content: newTweet, createdAt: "2021-09-01" },
-        ];
-        setTweetList(newTweets);
-        setNewTweet("");
+        // const newTweets = [
+        //   ...tweetList,
+        //   { userName: "yoshiki", content: newTweet, createdAt: "2021-09-01" },
+        // ];
+        // /tweetsにnewTweetを送信してレスポンスを受け取る
+        const res = await axios.post("http://localhost:3002/tweets", {
+          id: Number(sessionStorage.getItem("id")),
+          content: newTweet,
+        });
+        getTweetList();
+        // setTweetList(newTweets);
       }
+      setNewTweet("");
     } catch (error) {
       console.error(error);
     }
   };
   const handleSearch = (e: any) => {
     setSearch(e.target.value);
+    console.log(search);
   };
-  const handleSearchPost = () => {
+
+  const handleSearchPost = async (e: any) => {
+    e.preventDefault();
     console.log("検索:", search);
-    const res = "hello";
+    // http://localhost:3002/tweets/searchにsearchを送信してレスポンスを受け取る
+    const res = await axios.post("http://localhost:3002/tweets/search", {
+      text: search,
+    });
+    setSearch("");
+    setTweetList(res.data.tweetList);
   };
 
   return (
@@ -82,17 +109,18 @@ export default function Home() {
           >
             <MDBCardBody>
               {/* 検索部分 */}
-              <div className="mb-6">
+              <form className="mb-6" onSubmit={handleSearchPost}>
                 <MDBInput
                   wrapperClass="mb-2"
-                  placeholder={search}
+                  placeholder={"ツイートを検索"}
+                  value={search}
                   label="Search"
                   onChange={handleSearch}
                 />
-                <MDBBtn className="float-end" onClick={handleSearchPost}>
+                <MDBBtn className="float-end" type="submit">
                   検索
                 </MDBBtn>
-              </div>
+              </form>
               <div
                 className="mb-4"
                 style={{ maxHeight: "400px", overflow: "scroll" }}
@@ -126,6 +154,7 @@ export default function Home() {
                 contrast
                 id="textAreaExample"
                 label="message"
+                value={newTweet}
                 rows={4}
                 onChange={handleTweetChange}
               ></MDBTextArea>
