@@ -5,7 +5,6 @@ import {
   MDBCardImage,
   MDBCol,
   MDBContainer,
-  MDBIcon,
   MDBInput,
   MDBRow,
   MDBTextArea,
@@ -14,85 +13,81 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-interface Tweets {
+type Tweets = {
   userName: string;
   content: string;
   createdAt: string;
-}
+};
 
 export default function Home() {
-  const response = {
-    tweetList: [
-      {
-        userName: "yoshiki",
-        content: "hello",
-        createdAt: "2021-09-01",
-      },
-    ],
-  };
+  // 遷移するための関数
+  const navigate = useNavigate();
 
-  //http://localhost:3002からのレスポンスを受け取る
-
-  const [newTweet, setNewTweet] = useState("");
+  // ーーーーーツイート取得----------
+  // ツイートの一覧を管理するstate
   const [tweetList, setTweetList] = useState<Tweets[]>([]);
+  // 全件のツイートを取得する処理
   const getTweetList = async () => {
     const response = await axios.get("http://localhost:3002/tweets");
-    console.log(response.data.tweetList);
     setTweetList(response.data.tweetList);
   };
   useEffect(() => {
+    // 全件のツイートを取得する処理を呼ぶ関数
     getTweetList();
   }, []);
-  const navigate = useNavigate();
 
-  const [search, setSearch] = useState("");
-  const handleSignOut = () => {
-    sessionStorage.clear();
-    navigate("/login");
-  };
+  // ーーーーーツイート投稿----------
+  // 入力欄のツイートの内容を管理するstate
+  const [newTweet, setNewTweet] = useState("");
+  // ツイートの内容を変更する処理
   const handleTweetChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewTweet(event.target.value);
   };
-
+  // ツイートを投稿する処理
   const handleTweetSubmit = async () => {
     try {
       if (newTweet !== "") {
-        // const newTweets = [
-        //   ...tweetList,
-        //   { userName: "yoshiki", content: newTweet, createdAt: "2021-09-01" },
-        // ];
-        // /tweetsにnewTweetを送信してレスポンスを受け取る
         await axios.post("http://localhost:3002/tweets", {
           id: Number(sessionStorage.getItem("id")),
           content: newTweet,
         });
+        //  ツイートを投稿したら全件のツイートを再取得する処理を呼ぶ関数
         getTweetList();
-        // setTweetList(newTweets);
       }
+      //  ツイートを投稿したらツイートの内容を空にする処理
       setNewTweet("");
     } catch (error) {
       console.error(error);
     }
   };
+
+  // ーーーーー検索の処理----------
+  // 検索欄の内容を管理するstate
+  const [search, setSearch] = useState("");
+  //  検索欄の内容を変更をする処理
   const handleSearch = (e: any) => {
     setSearch(e.target.value);
-    console.log(search);
   };
+  // 検索ボタンを押した時の処理
+  const handleSearchPost = async (e: any) => {
+    e.preventDefault();
+    // 検索欄の内容が空の場合は全件のツイートを取得する処理を呼ぶ関数
+    // 検索欄の内容が空でない場合は検索結果のツイートを取得する処理を呼ぶ関数
+    search === "" ? getTweetList() : getSearchTweetList();
+  };
+  // 検索結果のツイートを取得する処理
   const getSearchTweetList = async () => {
     const res = await axios.post("http://localhost:3002/tweets/search", {
       text: search,
     });
-    console.log(res.data.tweetList);
     setTweetList(res.data.tweetList);
   };
 
-  const handleSearchPost = async (e: any) => {
-    e.preventDefault();
-    console.log("検索:", search);
-    // http://localhost:3002/tweets/searchにsearchを送信してレスポンスを受け取る
-    search === "" ? getTweetList() : getSearchTweetList();
+  // サインアウトの処理
+  const handleSignOut = () => {
+    sessionStorage.clear();
+    navigate("/login");
   };
-
   return (
     <MDBContainer className="mt-5  w-screen">
       <MDBBtn
@@ -101,7 +96,6 @@ export default function Home() {
         className="float-start w-2"
         onClick={handleSignOut}
       >
-        {" "}
         sign-out
       </MDBBtn>
       <MDBRow className="justify-content-center w-100">
@@ -167,8 +161,7 @@ export default function Home() {
                 className="float-end mt-2"
                 onClick={handleTweetSubmit}
               >
-                {" "}
-                Send{" "}
+                Send
               </MDBBtn>
             </MDBCardBody>
           </MDBCard>

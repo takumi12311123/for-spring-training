@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MDBBtn,
   MDBContainer,
@@ -9,7 +9,6 @@ import {
   MDBRow,
   MDBCol,
   MDBInput,
-  MDBCheckbox,
 } from "mdb-react-ui-kit";
 import axios from "axios";
 
@@ -21,17 +20,14 @@ function Login() {
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
+      // ログイン処理
       const response = await axios.post("http://localhost:3002/users/login", {
         email: email,
         password: password,
       });
-      // レスポンスの中身を確認
-      console.log(response.data);
+      // userのidとnameをsessionStorageに保存。これでログイン状態を保持できる
       sessionStorage.setItem("id", response.data.id);
       sessionStorage.setItem("name", response.data.name);
-      // localStorageの中身をログで確認
-      console.log(sessionStorage.getItem("id"));
-      console.log(sessionStorage.getItem("name"));
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -73,8 +69,7 @@ function Login() {
                 <MDBBtn className="mb-4 w-100">Sign in</MDBBtn>
 
                 <div className="d-flex justify-content-between mx-4 mb-4">
-                  {/* <MDBCheckbox name='flexCheck' value='' id='flexCheckDefault' label='Remember me' /> */}
-                  <a href="signup">Create a new account?</a>
+                  <Link to="signup">Create a new account?</Link>
                 </div>
               </form>
             </MDBCardBody>
