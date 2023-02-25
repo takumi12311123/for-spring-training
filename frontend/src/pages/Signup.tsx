@@ -9,7 +9,6 @@ import {
   MDBRow,
   MDBCol,
   MDBInput,
-  MDBCheckbox,
 } from "mdb-react-ui-kit";
 import axios from "axios";
 
@@ -31,7 +30,6 @@ function SignUp() {
       // レスポンスの中身を確認
       sessionStorage.setItem("id", response.data.id);
       sessionStorage.setItem("name", response.data.name);
-      console.log(sessionStorage.getItem("id"));
       navigate("/");
     } catch (error) {
       console.error(error);
